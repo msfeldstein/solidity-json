@@ -10,12 +10,19 @@ library JSON {
         string[20] stringKeys;
         string[20] stringValues;
         uint256 numStrings;
+        //
         string[20] numberKeys;
         uint256[20] numberValues;
         uint256 numNumbers;
+        //
         string[20] boolKeys;
         bool[20] boolValues;
         uint256 numBools;
+        // Use raw values for sub-objects, they won't get quoted.
+        string[20] rawKeys;
+        string[20] rawValues;
+        uint256 numRaws;
+        
     }
 
     function addString(
@@ -51,6 +58,17 @@ library JSON {
         return data;
     }
 
+    function addSubobject(
+        JSONData memory data,
+        string memory key,
+        JSONData memory subobject
+    ) public pure returns (JSONData memory) {
+        data.rawKeys[data.numRaws] = key;
+        data.rawValues[data.numRaws] = serialize(subobject);
+        data.numRaws++;
+        return data;
+    }
+
     function serialize(JSONData memory data)
         public
         pure
@@ -58,6 +76,7 @@ library JSON {
     {
         bool hasNumbers = data.numNumbers > 0;
         bool hasBools = data.numBools > 0;
+        bool hasRaws = data.numRaws > 0;
         bytes memory json = "{";
         for (uint256 i = 0; i < data.numStrings; i++) {
             json = abi.encodePacked(
@@ -68,7 +87,7 @@ library JSON {
                 data.stringValues[i],
                 '"'
             );
-            if (i < data.numStrings - 1 || hasNumbers || hasBools) {
+            if (i < data.numStrings - 1 || hasNumbers || hasBools || hasRaws) {
                 json = abi.encodePacked(json, ", ");
             }
         }
@@ -81,7 +100,7 @@ library JSON {
                 '": ',
                 uint2str(data.numberValues[i])
             );
-            if (i < data.numNumbers - 1 || hasBools) {
+            if (i < data.numNumbers - 1 || hasBools || hasRaws) {
                 json = abi.encodePacked(json, ", ");
             }
         }
@@ -94,7 +113,20 @@ library JSON {
                 '": ',
                 data.boolValues[i] ? "true" : "false"
             );
-            if (i < data.numBools - 1) {
+            if (i < data.numBools - 1 || hasRaws) {
+                json = abi.encodePacked(json, ", ");
+            }
+        }
+
+        for (uint256 i = 0; i < data.numRaws; i++) {
+            json = abi.encodePacked(
+                json,
+                '"',
+                data.rawKeys[i],
+                '": ',
+                data.rawValues[i]
+            );
+            if (i < data.numRaws - 1) {
                 json = abi.encodePacked(json, ", ");
             }
         }
