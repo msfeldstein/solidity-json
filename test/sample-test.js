@@ -14,7 +14,9 @@ describe("JSON", function () {
     });
     const contract = await TestContract.deploy();
     await contract.deployed();
-    const json = await contract.generate("Michael", "Good", 420)
-    console.log(json)
+    const json = await contract.generate("Michael's Feldstein", "Good \"Stuff\"", 420)
+    console.log("Result", json)
+    JSON.parse(json)
+    console.log("Parsed", json)
   });
 });

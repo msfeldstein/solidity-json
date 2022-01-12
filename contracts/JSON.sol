@@ -69,6 +69,30 @@ library JSON {
         return data;
     }
 
+    function escapeString(string memory input) private pure returns (string memory) {
+        uint256 numQuotes = 0;
+        bytes memory inputBytes = bytes(input);
+        for (uint256 i = 0; i < inputBytes.length; i++) {
+            if (inputBytes[i] == '"') {
+                numQuotes++;
+            }
+        }
+        if (numQuotes == 0) return input;
+        // since escaped quotes add 1 extra character we create an escaped string that includes
+        // the length of the input + all the added slashes
+        bytes memory escaped = new bytes(inputBytes.length + numQuotes);
+        uint256 outputI = 0;
+        for (uint256 inputI = 0; inputI < inputBytes.length; inputI++) {
+            if (inputBytes[inputI] == '"') {
+                escaped[outputI] = '\\';
+                outputI++;
+            }
+            escaped[outputI] = inputBytes[inputI];
+            outputI++;
+        }
+        return string(escaped);
+    }
+
     function serialize(JSONData memory data)
         public
         pure
@@ -84,7 +108,7 @@ library JSON {
                 '"',
                 data.stringKeys[i],
                 '": "',
-                data.stringValues[i],
+                escapeString(data.stringValues[i]),
                 '"'
             );
             if (i < data.numStrings - 1 || hasNumbers || hasBools || hasRaws) {
