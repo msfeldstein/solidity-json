@@ -9,8 +9,7 @@ contract Test {
         data = JSON.addString(data, "name", name);
         data = JSON.addString(data, "vibe", vibe);
         data = JSON.addNumber(data, "phase", phase);
-        data = JSON.addBool(data, "legit", true);
-        data = JSON.addBool(data, "phony", false);
+        data = JSON.addBool(data, "gm", true);
         return JSON.serialize(data);
     }
 }
